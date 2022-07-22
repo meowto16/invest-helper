@@ -1,4 +1,7 @@
+import * as process from 'process'
+
 import * as puppeteer from 'puppeteer'
+import prompts from 'prompts'
 
 type Result = {
   cons: string[] | null
@@ -6,9 +9,33 @@ type Result = {
 }
 
 const main = async () => {
+  const { ticker } = await prompts({
+    type: 'text',
+    name: 'ticker',
+    message: 'Введите ticker, например (ROSN)',
+    format: value => value.toUpperCase()
+  })
+
+  const PAGE_URL = `https://smart-lab.ru/q/${ticker}/f/y/`
+
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
-  await page.goto('https://smart-lab.ru/q/ROSN/f/y/')
+  page.on('response', (response) => {
+    if (response.url() === PAGE_URL) {
+      if (response.status() === 404) {
+        console.error('Bad ticker, page not found')
+        console.log(`URL: ${PAGE_URL}`)
+        process.exit()
+      }
+
+      if (response.status() >= 500) {
+        console.error('Server error')
+        process.exit()
+      }
+    }
+  });
+
+  await page.goto(PAGE_URL)
 
   const $reasons = await page.$('.company_description .reasons')
 
@@ -28,6 +55,16 @@ const main = async () => {
     if ($pros) {
       result.pros = await $pros.$$eval('ul > li', (nodes) => nodes.map(node => node.textContent))
     }
+  }
+
+  if (result.pros?.length) {
+    console.log('Плюсы:')
+    result.pros.forEach((item) => console.log(`- ${item}`))
+  }
+
+  if (result.cons?.length) {
+    console.log('Минусы:')
+    result.cons.forEach((item) => console.log(`- ${item}`))
   }
 
   await browser.close()
