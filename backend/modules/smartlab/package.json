@@ -1,0 +1,13 @@
+{
+  "version": "1.0.0",
+  "name": "smartlab",
+  "scripts": {
+    "smartlab:get-info-by-ticker": "npx ts-node scripts/get-info-by-ticker.ts"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "puppeteer": "^15.5.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.7.4"
+  }
+}

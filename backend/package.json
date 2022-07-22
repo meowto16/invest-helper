@@ -1,5 +1,7 @@
 {
-  "dependencies": {
-    "ts-node": "^10.9.1"
-  }
+  "version": "1.0.0",
+  "name": "invest-helper",
+  "workspaces": ["modules/*"],
+  "license": "MIT",
+  "private": true
 }
