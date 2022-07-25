@@ -1,0 +1,13 @@
+{
+  "version": "1.0.0",
+  "name": "tinkoff",
+  "scripts": {
+    "postinstall": "npx ts-node scripts/postinstall.ts",
+    "tinkoff:get-info-about-account": "npx ts-node scripts/get-info-about-account.ts"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "tinkoff-invest-v2-sdk": "1.0.0",
+    "dotenv": "^16.0.1"
+  }
+}
