@@ -1,10 +1,8 @@
 import 'dotenv/config'
-import * as path from 'path'
 import * as sqlite3 from 'sqlite3'
 
 import { createApi } from '../api'
-
-const DATA_PATH = path.resolve(__dirname, '../data/instruments.sqlite')
+import { DATA_PATH } from '../config/data'
 
 !(async function main() {
   const api = createApi()
