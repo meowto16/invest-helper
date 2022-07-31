@@ -18,7 +18,7 @@ import { DATA_PATH } from '../config/data'
   }
 
   const api: any = createApi()
-  const db = new sqlite3.Database(DATA_PATH);
+  const db = new (sqlite3.verbose()).Database(DATA_PATH);
 
   const { positions } = await api.operations.GetPortfolio({
     account_id: portfolioId
@@ -31,22 +31,43 @@ import { DATA_PATH } from '../config/data'
     .filter((position: any) => position.instrument_type === 'bond')
     .map((position: any) => position.figi)
 
-  let sharesInfoByFigi = {}
-  let bondsInfoByFigi = {}
+  let sharesInfoByFigi: any = {}
+  let bondsInfoByFigi: any = {}
+
+  const toParamList = (acc: any, _: any, idx: number) => acc + (idx === 0 ? '' : ',') + '?'
 
   if (sharesFigi.length) {
     db.all(`
       SELECT figi, ticker, name
-      FROM shares;
-    `, { $figiArr: sharesFigi }, (err, rows) =>
-      console.log(rows));
+      FROM shares
+      WHERE figi IN(${sharesFigi.reduce(toParamList, '')})
+    `, sharesFigi, (err: any, rows: any) => {
+      if (err) {
+        console.error(err)
+      } else {
+        rows.forEach((row: any) => sharesInfoByFigi[row.figi] = row)
+      }
+    })
   }
 
   if (bondsFigi.length) {
-
+    db.all(`
+      SELECT figi, ticker, name
+      FROM bonds
+      WHERE figi IN(${bondsFigi.reduce(toParamList, '')})
+    `, bondsFigi, (err: any, rows: any) => {
+      if (err) {
+        console.error(err)
+      } else {
+        rows.forEach((row: any) => bondsInfoByFigi[row.figi] = row)
+      }
+    })
   }
 
-  // const
+  setTimeout(() => {
+    console.log({
+      bondsInfoByFigi,
+      sharesInfoByFigi
+    })
+  }, 3000)
 })();
-
-//
