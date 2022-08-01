@@ -30,44 +30,81 @@ import { DATA_PATH } from '../config/data'
   const bondsFigi = positions
     .filter((position: any) => position.instrument_type === 'bond')
     .map((position: any) => position.figi)
+  const etfFigi = positions
+    .filter((position: any) => position.instrument_type === 'etf')
+    .map((position: any) => position.figi)
 
-  let sharesInfoByFigi: any = {}
-  let bondsInfoByFigi: any = {}
+  const getData = (from: 'shares' | 'bonds' | 'etf') => new Promise((resolve, reject) => {
+    const toParamList = (acc: any, _: any, idx: number) => acc + (idx === 0 ? '' : ',') + '?'
 
-  const toParamList = (acc: any, _: any, idx: number) => acc + (idx === 0 ? '' : ',') + '?'
+    const filter =
+      from === 'shares' ? sharesFigi
+      : from === 'bonds' ? bondsFigi
+      : from === 'etf' ? etfFigi : [];
 
-  if (sharesFigi.length) {
+    const table =
+      from === 'shares' ? 'shares'
+      : from === 'bonds' ? 'bonds'
+      : from === 'etf' ? 'etf' : '';
+
+    if (!table || !filter.length) {
+      resolve([]);
+    }
+
     db.all(`
       SELECT figi, ticker, name
-      FROM shares
-      WHERE figi IN(${sharesFigi.reduce(toParamList, '')})
-    `, sharesFigi, (err: any, rows: any) => {
+      FROM ${table}
+      WHERE figi IN(${filter.reduce(toParamList, '')})
+    `, filter, (err: any, rows: any) => {
       if (err) {
-        console.error(err)
+        reject(err)
       } else {
-        rows.forEach((row: any) => sharesInfoByFigi[row.figi] = row)
+        resolve(rows);
       }
     })
-  }
+  })
 
-  if (bondsFigi.length) {
-    db.all(`
-      SELECT figi, ticker, name
-      FROM bonds
-      WHERE figi IN(${bondsFigi.reduce(toParamList, '')})
-    `, bondsFigi, (err: any, rows: any) => {
-      if (err) {
-        console.error(err)
-      } else {
-        rows.forEach((row: any) => bondsInfoByFigi[row.figi] = row)
-      }
-    })
-  }
+  const [sharesInfo, bondsInfo, etfInfo] = await Promise.all([
+    getData('shares'),
+    getData('bonds'),
+    getData('etf'),
+  ]);
 
-  setTimeout(() => {
-    console.log({
-      bondsInfoByFigi,
-      sharesInfoByFigi
-    })
-  }, 3000)
+  const groupByFigi = (arr: any) => arr.reduce((acc: any, cur: any) => {
+    acc[cur.figi] = cur
+
+    return acc
+  }, {})
+
+  const sharesInfoByFigi = groupByFigi(sharesInfo);
+  const bondsInfoByFigi = groupByFigi(bondsInfo);
+  const etfInfoByFigi = groupByFigi(etfInfo);
+
+  const infoMap = {
+    share: sharesInfoByFigi,
+    bond: bondsInfoByFigi,
+    etf: etfInfoByFigi
+  };
+
+  const result = positions.map((position: any) => {
+    return {
+      ...position,
+      // @ts-ignore
+      ...(infoMap?.[position.instrument_type]?.[position.figi])
+    }
+  });
+
+  console.log(`Текущее состояние портфеля:`)
+  result.forEach((row: any) => {
+    const type =
+        row.instrument_type === 'share' ? 'Акция '
+        : row.instrument_type === 'bond' ? 'Облигация '
+        : row.instrument_type === 'etf' ? 'Фонд ' : '';
+
+    const currentPrice = parseInt(row.current_price, 10);
+    const sum = row.quantity * currentPrice
+    const average = parseInt(row.average_position_price, 10);
+
+    console.log(`${type}${row.name}. На сумму: ${sum} руб. Средняя: ${average} руб. Текущая цена: ${currentPrice} руб."`)
+  })
 })();
