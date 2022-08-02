@@ -45,15 +45,15 @@ const main = async () => {
   }
 
   if ($reasons) {
-    const $cons = await $reasons.$('.reasons-up')
-    const $pros = await $reasons.$('.reasons-down')
-
-    if ($cons) {
-      result.cons = await $cons.$$eval('ul > li', (nodes) => nodes.map(node => node.innerHTML))
-    }
+    const $pros = await $reasons.$('.reasons-up')
+    const $cons = await $reasons.$('.reasons-down')
 
     if ($pros) {
       result.pros = await $pros.$$eval('ul > li', (nodes) => nodes.map(node => node.textContent))
+    }
+
+    if ($cons) {
+      result.cons = await $cons.$$eval('ul > li', (nodes) => nodes.map(node => node.innerHTML))
     }
   }
 
