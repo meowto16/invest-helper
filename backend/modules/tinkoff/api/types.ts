@@ -38,6 +38,7 @@ export namespace Shared {
   export type Isin = string;
   export type Lot = DataTypes.Int32;
   export type Currency = string;
+  export type IsoCurrencyName = string;
   export type ForIisFlag = boolean;
   export type ShortEnabledFlag = boolean;
   export type Exchange = string;
@@ -138,6 +139,7 @@ export namespace Instruments {
     sell_available_flag: Shared.SellAvailableFlag;
     country_of_risk: Shared.CountryOfRisk;
     country_of_risk_name: Shared.CountryOfRiskName;
+    api_trade_available_flat: Shared.ApiTradeAvailableFlag;
   }
 
   type WithCandles = {
@@ -182,6 +184,12 @@ export namespace Instruments {
     min_price_increment: DataTypes.Quotation;
   }
 
+  export type Currency = WithBasicInfo & WithRiskRate & WithCandles & {
+    short_enabled_flag: Shared.ShortEnabledFlag;
+    min_price_increment: DataTypes.Quotation;
+    iso_currency_name: Shared.IsoCurrencyName;
+  }
+
   type EtfsParams = { instrument_status: InstrumentStatus }
   type EtfsResponse = { instruments: Etf[] }
   type EtfsMethod = (params: EtfsParams) => Promise<EtfsResponse>
@@ -195,7 +203,7 @@ export namespace Instruments {
   type BondsMethod = (params: BondsParams) => Promise<BondsResponse>
 
   type CurrenciesParams = { instrument_status: InstrumentStatus }
-  type CurrenciesResponse = {}
+  type CurrenciesResponse = { instruments: Currency[] }
   type CurrenciesMethod = (params: CurrenciesParams) => Promise<CurrenciesResponse>
 
   export type Methods = {
