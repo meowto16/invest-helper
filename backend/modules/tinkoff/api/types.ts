@@ -97,6 +97,18 @@ export namespace Instruments {
     ALTERNATIVE_INVESTMENT = 'alternative_investment'
   }
 
+  export enum ShareType {
+    SHARE_TYPE_UNSPECIFIED = 0,
+    SHARE_TYPE_COMMON = 1,
+    SHARE_TYPE_PREFERRED = 2,
+    SHARE_TYPE_ADR = 3,
+    SHARE_TYPE_GDR = 4,
+    SHARE_TYPE_MLP = 5,
+    SHARE_TYPE_NY_REG_SHRS = 6,
+    SHARE_TYPE_CLOSED_END_FUND = 7,
+    SHARE_TYPE_REIT = 8
+  }
+
   type WithRiskRate = {
     klong: DataTypes.Quotation;
     kshort: DataTypes.Quotation;
@@ -159,12 +171,23 @@ export namespace Instruments {
     min_price_increment: DataTypes.Quotation;
   }
 
+  export type Share = WithBasicInfo & WithRiskRate & WithCandles & {
+    short_enabled_flag: Shared.ShortEnabledFlag;
+    ipo_date: DataTypes.Timestamp;
+    issue_size: DataTypes.Int64;
+    issue_size_plan: DataTypes.Int64;
+    nominal: DataTypes.MoneyValue;
+    div_yield_flag: boolean;
+    share_type: ShareType;
+    min_price_increment: DataTypes.Quotation;
+  }
+
   type EtfsParams = { instrument_status: InstrumentStatus }
   type EtfsResponse = { instruments: Etf[] }
   type EtfsMethod = (params: EtfsParams) => Promise<EtfsResponse>
 
   type SharesParams = { instrument_status: InstrumentStatus }
-  type SharesResponse = {}
+  type SharesResponse = { instruments: Share[] }
   type SharesMethod = (params: SharesParams) => Promise<SharesResponse>
 
   type BondsParams = { instrument_status: InstrumentStatus }
