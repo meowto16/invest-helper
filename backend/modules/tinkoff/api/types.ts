@@ -31,13 +31,13 @@ export namespace DataTypes {
 
 export namespace Shared {
   export type Uid = string;
-  export type PositionUid = string;
   export type Figi = string;
   export type Name = string;
   export type Ticker = string;
   export type ClassCode = string;
   export type Isin = string;
   export type Lot = DataTypes.Int32;
+  export type Currency = string;
   export type ForIisFlag = boolean;
   export type ShortEnabledFlag = boolean;
   export type Exchange = string;
@@ -85,21 +85,56 @@ export namespace Instruments {
     REAL_EXCHANGE_OTC = 3,
   }
 
-  type Bond = {
-    figi: Shared.Figi;
-    ticker: Shared.Ticker;
-    class_code: Shared.ClassCode;
-    isin: Shared.Isin;
-    lot: Shared.Lot;
+  export enum FocusType {
+    EQUITY = 'equity',
+    FIXED_INCOME = 'fixed_income',
+    MIXED_ALLOCATION = 'mixed_allocation',
+    MONEY_MARKET = 'money_market',
+    REAL_ESTATE = 'real_estate',
+    COMMODITY = 'commodity',
+    SPECIALITY = 'specialty',
+    PRIVATE_EQUITY = 'private_equity',
+    ALTERNATIVE_INVESTMENT = 'alternative_investment'
+  }
+
+  type WithRiskRate = {
     klong: DataTypes.Quotation;
     kshort: DataTypes.Quotation;
     dlong: DataTypes.Quotation;
     dshort: DataTypes.Quotation;
     dlong_min: DataTypes.Quotation;
     dshort_min: DataTypes.Quotation;
-    short_enabled_flag: Shared.ShortEnabledFlag;
+  }
+
+  type WithBasicInfo = {
+    uid: Shared.Uid;
+    position_uid: Shared.Uid;
+    figi: Shared.Figi;
+    ticker: Shared.Ticker;
+    class_code: Shared.ClassCode;
+    isin: Shared.Isin;
+    lot: Shared.Lot;
+    currency: Shared.Currency;
     name: Shared.Name;
     exchange: Shared.Exchange;
+    real_exchange: RealExchange;
+    for_iis_flag: Shared.ForIisFlag;
+    trading_status: SecurityTradingStatus;
+    sector: Shared.Sector;
+    otc_flag: Shared.OtcFlag;
+    buy_available_flag: Shared.BuyAvailableFlag;
+    sell_available_flag: Shared.SellAvailableFlag;
+    country_of_risk: Shared.CountryOfRisk;
+    country_of_risk_name: Shared.CountryOfRiskName;
+  }
+
+  type WithCandles = {
+    first_1min_candle_date: DataTypes.Timestamp;
+    first_1day_candle_date: DataTypes.Timestamp;
+  }
+
+  type Bond = WithBasicInfo & WithRiskRate & WithCandles & {
+    short_enabled_flag: Shared.ShortEnabledFlag;
     coupon_quantity_per_year: DataTypes.Int32;
     maturity_date: DataTypes.Timestamp;
     nominal: DataTypes.MoneyValue;
@@ -107,31 +142,25 @@ export namespace Instruments {
     placement_date: DataTypes.Timestamp;
     placement_price: DataTypes.MoneyValue;
     aci_value: DataTypes.MoneyValue;
-    country_of_risk: Shared.CountryOfRisk;
-    country_of_risk_name: Shared.CountryOfRiskName;
-    sector: Shared.Sector;
     issue_kind: Shared.IssueKind;
     issue_size: DataTypes.Int64;
     issue_size_plan: DataTypes.Int64;
-    trading_status: SecurityTradingStatus;
-    otc_flag: Shared.OtcFlag;
-    buy_available_flag: Shared.BuyAvailableFlag;
-    sell_available_flag: Shared.SellAvailableFlag;
     floating_coupon_flag: boolean;
     perpetual_flag: boolean;
     amortization_flag: boolean;
     min_price_increment: DataTypes.Quotation;
-    api_trade_available_flag: Shared.ApiTradeAvailableFlag;
-    uid: Shared.Uid;
-    real_exchange: RealExchange;
-    position_uid: Shared.Uid;
-    for_iis_flag: Shared.ForIisFlag;
-    first_1min_candle_date: DataTypes.Timestamp;
-    first_1day_candle_date: DataTypes.Timestamp;
+  }
+
+  export type Etf = WithBasicInfo & WithRiskRate & WithCandles & {
+    fixed_commission: DataTypes.Quotation;
+    focus_type: FocusType;
+    released_date: DataTypes.Timestamp;
+    rebalancing_freq: string;
+    min_price_increment: DataTypes.Quotation;
   }
 
   type EtfsParams = { instrument_status: InstrumentStatus }
-  type EtfsResponse = {}
+  type EtfsResponse = { instruments: Etf[] }
   type EtfsMethod = (params: EtfsParams) => Promise<EtfsResponse>
 
   type SharesParams = { instrument_status: InstrumentStatus }
