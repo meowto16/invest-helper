@@ -17,7 +17,7 @@ import { DATA_PATH } from '../config/data'
     throw new Error('You should defined "TINKOFF_PORTFOLIO_ID" in .env.')
   }
 
-  const api: any = createApi()
+  const api = createApi()
   const db = new (sqlite3.verbose()).Database(DATA_PATH);
 
   const portfolio = await api.operations.GetPortfolio({
@@ -27,17 +27,17 @@ import { DATA_PATH } from '../config/data'
   const { positions } = portfolio
 
   const sharesFigi = positions
-    .filter((position: any) => position.instrument_type === 'share')
-    .map((position: any) => position.figi)
+    .filter((position) => position.instrument_type === 'share')
+    .map((position) => position.figi)
   const bondsFigi = positions
-    .filter((position: any) => position.instrument_type === 'bond')
-    .map((position: any) => position.figi)
+    .filter((position) => position.instrument_type === 'bond')
+    .map((position) => position.figi)
   const etfFigi = positions
-    .filter((position: any) => position.instrument_type === 'etf')
-    .map((position: any) => position.figi)
+    .filter((position) => position.instrument_type === 'etf')
+    .map((position) => position.figi)
   const currenciesFigi = positions
-    .filter((position: any) => position.instrument_type === 'currency')
-    .map((position: any) => position.figi)
+    .filter((position) => position.instrument_type === 'currency')
+    .map((position) => position.figi)
 
   const getData = (from: 'shares' | 'bonds' | 'etf' | 'currencies') => new Promise((resolve, reject) => {
     const toParamList = (acc: any, _: any, idx: number) => acc + (idx === 0 ? '' : ',') + '?'
