@@ -53,6 +53,10 @@ export namespace Shared {
 }
 
 export namespace Instruments {
+  export type InstrumentType = 'etf' | 'currency' | 'share' | 'bond'
+  export type InstrumentMethod = 'Etfs' | 'Currencies' | 'Shares' | 'Bonds'
+  export type InstrumentTableName = 'etfs' | 'currencies' | 'shares' | 'bonds'
+
   export enum InstrumentStatus {
     INSTRUMENT_STATUS_UNSPECIFIED = 0,
     INSTRUMENT_STATUS_BASE = 1,

@@ -6,85 +6,75 @@ import { DATA_PATH } from '../config/data'
 import { Instruments } from '../api/types'
 
 import InstrumentStatus = Instruments.InstrumentStatus
+import InstrumentType = Instruments.InstrumentType
+import InstrumentMethod = Instruments.InstrumentMethod
+import InstrumentTableName = Instruments.InstrumentTableName
 
 !(async function main() {
   const api = createApi()
 
   const db = new sqlite3.Database(DATA_PATH);
 
-  api.instruments.Etfs({ instrument_status: InstrumentStatus.INSTRUMENT_STATUS_ALL })
-    .then((response) => {
-      const instruments = response.instruments
-      const values = instruments.map((etf: any) => `("${etf.figi}", "${etf.ticker}", "${etf.name}")`)
+  const updateData = {
+    in: (instrument: InstrumentType, done?: () => void, fail?: () => void) => {
+      const instrumentMap: Record<InstrumentType, InstrumentMethod> = {
+        etf: 'Etfs',
+        currency: 'Currencies',
+        bond: 'Bonds',
+        share: 'Shares'
+      }
+      
+      const instrumentMethod: InstrumentMethod = instrumentMap[instrument]
+      
+      if (!instrumentMethod) {
+        return
+      }
+      
+      return new Promise<void>((resolve, reject) => {
+        api.instruments[instrumentMethod]({ instrument_status: InstrumentStatus.INSTRUMENT_STATUS_BASE })
+          .then((response) => {
+            const instruments = response.instruments
+            const values = instruments.map(({ figi, ticker, name }) => `("${figi}", "${ticker}", "${name}")`)
+            
+            const tableInstrumentMap: Record<InstrumentType, InstrumentTableName> = {
+              etf: 'etfs',
+              share: 'shares',
+              bond: 'bonds',
+              currency: 'currencies'
+            }
 
-      db.exec(`
-        DELETE FROM "etfs";
+            const tableName = tableInstrumentMap[instrument]
 
-        INSERT INTO "etfs" VALUES
-        ${values.join(',\n')}
-      `)
+            if (!tableName) {
+              fail?.()
+              return reject()
+            }
+            
+            db.exec(`
+              DELETE FROM "${tableName}";
 
-      console.log('Обновлены данные по ETF')
-    })
-    .catch((err) => {
-      console.error(`Не удалось обновить данные по ETF`)
-      console.error(err)
-    })
+              INSERT INTO "${tableName}" VALUES
+              ${values.join(',\n')}
+            `)
 
-  api.instruments.Shares({ instrument_status: InstrumentStatus.INSTRUMENT_STATUS_ALL })
-    .then((response) => {
-      const instruments = response.instruments
-      const values = instruments.map((share: any) => `("${share.figi}", "${share.ticker}", "${share.name}")`)
+            done?.()
+            resolve()
+          })
+          .catch((err) => {
+            fail?.()
+            reject(err)
+          })
+      })
+    }
+  }
 
-      db.exec(`
-        DELETE FROM "shares";
+  const successLog = (name: string) => () => console.log(`Обновлены данные по ${name}`);
+  const errorLog = (name: string) => () => console.error(`Не удалось обновить данные по ${name}`)
 
-        INSERT INTO "shares" VALUES
-        ${values.join(',\n')}
-      `)
-
-      console.log('Обновлены данные по акциям')
-    })
-    .catch((err: any) => {
-      console.error(`Не удалось обновить данные по акциям`)
-      console.error(err)
-    })
-
-  api.instruments.Bonds({ instrument_status: InstrumentStatus.INSTRUMENT_STATUS_ALL })
-    .then((response) => {
-      const instruments = response.instruments
-      const values = instruments.map((bond: any) => `("${bond.figi}", "${bond.ticker}", "${bond.name}")`)
-
-      db.exec(`
-        DELETE FROM "bonds";
-
-        INSERT INTO "bonds" VALUES
-        ${values.join(',\n')}
-      `)
-
-      console.log('Обновлены данные по облигациям')
-    })
-    .catch((err: any) => {
-      console.error(`Не удалось обновить данные по облигациям`)
-      console.error(err)
-    })
-
-  api.instruments.Currencies({ instrument_status: InstrumentStatus.INSTRUMENT_STATUS_ALL })
-    .then((response) => {
-      const instruments = response.instruments
-      const values = instruments.map((currency: any) => `("${currency.figi}", "${currency.ticker}", "${currency.name}")`)
-
-      db.exec(`
-        DELETE FROM "currencies";
-
-        INSERT INTO "currencies" VALUES
-        ${values.join(',\n')}
-      `)
-
-      console.log('Обновлены данные по валютам')
-    })
-    .catch((err) => {
-      console.error(`Не удалось обновить данные по валютам`)
-      console.error(err)
-    })
+  await Promise.all([
+    updateData.in('etf', successLog('ETF'), errorLog('ETF')),
+    updateData.in('share', successLog('акциям'), errorLog('акциям')),
+    updateData.in('currency', successLog('валютам'), errorLog('валютам')),
+    updateData.in('bond', successLog('облигациям'), errorLog('облигациям')),
+  ])
 })();

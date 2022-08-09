@@ -1,3 +1,4 @@
+// @ts-ignore
 import tinkoffV2 from 'tinkoff-invest-v2-sdk'
 import { APP_NAME, APP_TOKEN } from '../config/api'
 
