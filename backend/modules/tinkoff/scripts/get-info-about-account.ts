@@ -20,9 +20,11 @@ import { DATA_PATH } from '../config/data'
   const api: any = createApi()
   const db = new (sqlite3.verbose()).Database(DATA_PATH);
 
-  const { positions } = await api.operations.GetPortfolio({
+  const portfolio = await api.operations.GetPortfolio({
     account_id: portfolioId
   });
+
+  const { positions } = portfolio
 
   const sharesFigi = positions
     .filter((position: any) => position.instrument_type === 'share')
@@ -33,19 +35,24 @@ import { DATA_PATH } from '../config/data'
   const etfFigi = positions
     .filter((position: any) => position.instrument_type === 'etf')
     .map((position: any) => position.figi)
+  const currenciesFigi = positions
+    .filter((position: any) => position.instrument_type === 'currency')
+    .map((position: any) => position.figi)
 
-  const getData = (from: 'shares' | 'bonds' | 'etf') => new Promise((resolve, reject) => {
+  const getData = (from: 'shares' | 'bonds' | 'etf' | 'currencies') => new Promise((resolve, reject) => {
     const toParamList = (acc: any, _: any, idx: number) => acc + (idx === 0 ? '' : ',') + '?'
 
     const filter =
       from === 'shares' ? sharesFigi
       : from === 'bonds' ? bondsFigi
-      : from === 'etf' ? etfFigi : [];
+      : from === 'etf' ? etfFigi
+      : from === 'currencies' ? currenciesFigi : [];
 
     const table =
       from === 'shares' ? 'shares'
       : from === 'bonds' ? 'bonds'
-      : from === 'etf' ? 'etf' : '';
+      : from === 'etf' ? 'etf'
+      : from === 'currencies' ? 'currencies' : '';
 
     if (!table || !filter.length) {
       resolve([]);
@@ -64,11 +71,12 @@ import { DATA_PATH } from '../config/data'
     })
   })
 
-  const [sharesInfo, bondsInfo, etfInfo] = await Promise.all([
+  const [sharesInfo, bondsInfo, etfInfo, currenciesInfo] = await Promise.all([
     getData('shares'),
     getData('bonds'),
     getData('etf'),
-  ]);
+    getData('currencies')
+  ])
 
   const groupByFigi = (arr: any) => arr.reduce((acc: any, cur: any) => {
     acc[cur.figi] = cur
@@ -76,14 +84,16 @@ import { DATA_PATH } from '../config/data'
     return acc
   }, {})
 
-  const sharesInfoByFigi = groupByFigi(sharesInfo);
-  const bondsInfoByFigi = groupByFigi(bondsInfo);
-  const etfInfoByFigi = groupByFigi(etfInfo);
+  const sharesInfoByFigi = groupByFigi(sharesInfo)
+  const bondsInfoByFigi = groupByFigi(bondsInfo)
+  const etfInfoByFigi = groupByFigi(etfInfo)
+  const currenciesInfoByFigi = groupByFigi(currenciesInfo)
 
   const infoMap = {
     share: sharesInfoByFigi,
     bond: bondsInfoByFigi,
-    etf: etfInfoByFigi
+    etf: etfInfoByFigi,
+    currency: currenciesInfoByFigi,
   };
 
   const result = positions.map((position: any) => {
@@ -99,12 +109,13 @@ import { DATA_PATH } from '../config/data'
     const type =
         row.instrument_type === 'share' ? 'Акция '
         : row.instrument_type === 'bond' ? 'Облигация '
-        : row.instrument_type === 'etf' ? 'Фонд ' : '';
+        : row.instrument_type === 'etf' ? 'Фонд '
+        : row.instrument_type === 'currency' ? 'Валюта ' : '';
 
     const currentPrice = parseInt(row.current_price, 10);
     const sum = row.quantity * currentPrice
     const average = parseInt(row.average_position_price, 10);
 
-    console.log(`${type}${row.name}. На сумму: ${sum} руб. Средняя: ${average} руб. Текущая цена: ${currentPrice} руб."`)
+    console.log(`${type}"${row.name}". На сумму: ${sum} руб. Средняя: ${average} руб. Текущая цена: ${currentPrice} руб."`)
   })
 })();
