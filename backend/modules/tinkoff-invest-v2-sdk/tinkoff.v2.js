@@ -27,9 +27,9 @@ module.exports = function (opt){
   this.isDebug  = false;
   this.url      = 'invest-public-api.tinkoff.ru:443';
   this.protoDir = path.resolve(
-    path.dirname(require.resolve("invest-api")),
-    'src',
-    'docs',
+    __dirname,
+    '..',
+    'tinkoff',
     'contracts'
   ) + '/';
 
