@@ -1,0 +1,1 @@
+export const toParamList = (acc: string, _: unknown, idx: number) => acc + (idx === 0 ? '' : ',') + '?'

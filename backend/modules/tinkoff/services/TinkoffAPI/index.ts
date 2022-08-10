@@ -1,10 +1,10 @@
 // @ts-ignore
 import tinkoffV2 from 'tinkoff-invest-v2-sdk'
-import { APP_NAME, APP_TOKEN } from '../config/api'
 
-import { TinkoffAPI } from './types'
+import { TinkoffApiInstance } from './types'
+import { APP_NAME, APP_TOKEN } from '../../config/api'
 
-export const createApi = (): TinkoffAPI => {
+const TinkoffApi: TinkoffApiInstance = (() => {
   if (!APP_TOKEN) {
     throw new Error('You should define "TINKOFF_SECRET_TOCKET" in .env')
   }
@@ -15,7 +15,7 @@ export const createApi = (): TinkoffAPI => {
 
   const api = tinkoffV2({ token: APP_TOKEN, appName: APP_NAME });
 
-  const Api: TinkoffAPI = {
+  const Api: TinkoffApiInstance = {
     common: api.Common,
     instruments: api.Instruments,
     marketData: api.MarketData,
@@ -27,4 +27,6 @@ export const createApi = (): TinkoffAPI => {
   }
 
   return Api
-}
+})();
+
+export default TinkoffApi;

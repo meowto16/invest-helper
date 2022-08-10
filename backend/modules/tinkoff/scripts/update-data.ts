@@ -1,9 +1,9 @@
 import 'dotenv/config'
 import * as sqlite3 from 'sqlite3'
 
-import { createApi } from '../api'
+import { createApi } from '../services'
 import { DATA_PATH } from '../config/data'
-import { Instruments } from '../api/types'
+import { Instruments } from '../services/TinkoffAPI/types'
 
 import InstrumentStatus = Instruments.InstrumentStatus
 import InstrumentType = Instruments.InstrumentType

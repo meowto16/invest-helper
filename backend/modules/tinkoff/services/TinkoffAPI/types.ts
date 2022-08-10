@@ -1,4 +1,4 @@
-export type TinkoffAPI = {
+export type TinkoffApiInstance = {
   common: unknown
   instruments: Instruments.Methods
   marketData: unknown
@@ -220,7 +220,7 @@ export namespace Instruments {
 }
 
 export namespace Operations {
-  type PortfolioPosition = {
+  export type PortfolioPosition = {
     figi: Shared.Figi
     instrument_type: Shared.InstrumentType
     quantity: DataTypes.Quotation;

@@ -1,24 +1,17 @@
 import 'dotenv/config'
 import * as process from 'process'
-import * as sqlite3 from 'sqlite3';
+import { BondsRepository, CurrenciesRepository, EtfsRepository, SharesRepository } from '../services/CacheData'
 
-import { createApi } from '../api'
-import { DATA_PATH } from '../config/data'
+import TinkoffApi from '../services/TinkoffAPI'
 
 !(async function main() {
-  const token = process.env.TINKOFF_SECRET_TOCKET
   const portfolioId = process.env.TINKOFF_PORTFOLIO_ID
-
-  if (!token) {
-    throw new Error('You should define "TINKOFF_SECRET_TOCKET" in .env')
-  }
 
   if (!portfolioId) {
     throw new Error('You should defined "TINKOFF_PORTFOLIO_ID" in .env.')
   }
 
-  const api = createApi()
-  const db = new (sqlite3.verbose()).Database(DATA_PATH);
+  const api = TinkoffApi
 
   const portfolio = await api.operations.GetPortfolio({
     account_id: portfolioId
@@ -39,43 +32,16 @@ import { DATA_PATH } from '../config/data'
     .filter((position) => position.instrument_type === 'currency')
     .map((position) => position.figi)
 
-  const getData = (from: 'shares' | 'bonds' | 'etf' | 'currencies') => new Promise((resolve, reject) => {
-    const toParamList = (acc: any, _: any, idx: number) => acc + (idx === 0 ? '' : ',') + '?'
-
-    const filter =
-      from === 'shares' ? sharesFigi
-      : from === 'bonds' ? bondsFigi
-      : from === 'etf' ? etfFigi
-      : from === 'currencies' ? currenciesFigi : [];
-
-    const table =
-      from === 'shares' ? 'shares'
-      : from === 'bonds' ? 'bonds'
-      : from === 'etf' ? 'etf'
-      : from === 'currencies' ? 'currencies' : '';
-
-    if (!table || !filter.length) {
-      resolve([]);
-    }
-
-    db.all(`
-      SELECT figi, ticker, name
-      FROM ${table}
-      WHERE figi IN(${filter.reduce(toParamList, '')})
-    `, filter, (err: any, rows: any) => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve(rows);
-      }
-    })
-  })
+  const SharesCache = new SharesRepository()
+  const EtfsCache = new EtfsRepository()
+  const CurrenciesCache = new CurrenciesRepository()
+  const BondsCache = new BondsRepository()
 
   const [sharesInfo, bondsInfo, etfInfo, currenciesInfo] = await Promise.all([
-    getData('shares'),
-    getData('bonds'),
-    getData('etf'),
-    getData('currencies')
+    SharesCache.getAllByFigi(sharesFigi),
+    BondsCache.getAllByFigi(bondsFigi),
+    EtfsCache.getAllByFigi(etfFigi),
+    CurrenciesCache.getAllByFigi(currenciesFigi)
   ])
 
   const groupByFigi = (arr: any) => arr.reduce((acc: any, cur: any) => {
