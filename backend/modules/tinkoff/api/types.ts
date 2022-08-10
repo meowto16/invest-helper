@@ -50,6 +50,7 @@ export namespace Shared {
   export type BuyAvailableFlag = boolean;
   export type SellAvailableFlag = boolean;
   export type ApiTradeAvailableFlag = boolean;
+  export type InstrumentType = 'share' | 'currency' | 'bond' | 'etf'
 }
 
 export namespace Instruments {
@@ -219,10 +220,33 @@ export namespace Instruments {
 }
 
 export namespace Operations {
-  type GetPortfolioParams = {}
-  type GetPortfolioResponse = {}
+  type PortfolioPosition = {
+    figi: Shared.Figi
+    instrument_type: Shared.InstrumentType
+    quantity: DataTypes.Quotation;
+    average_position_price: DataTypes.MoneyValue;
+    expected_yield: DataTypes.Quotation;
+    current_nkd: DataTypes.MoneyValue;
+    average_position_price_pt: DataTypes.Quotation;
+    current_price: DataTypes.MoneyValue;
+    average_position_price_fifo: DataTypes.MoneyValue;
+    quantity_lots: DataTypes.Quotation;
+    blocked: boolean;
+  }
+
+  type GetPortfolioParams = { account_id: string; }
+  type GetPortfolioResponse = {
+    total_amount_shares: DataTypes.MoneyValue;
+    total_amount_bonds: DataTypes.MoneyValue;
+    total_amount_etf: DataTypes.MoneyValue;
+    total_amount_currencies: DataTypes.MoneyValue;
+    total_amount_futures: DataTypes.MoneyValue;
+    expected_yield: DataTypes.Quotation;
+    positions: PortfolioPosition[]
+  }
+  type GetPortfolioMethod = (params: GetPortfolioParams) => Promise<GetPortfolioResponse>
 
   export type Methods = {
-    GetPortfolio: (params: GetPortfolioParams) => Promise<GetPortfolioResponse>
+    GetPortfolio: GetPortfolioMethod
   }
 }
