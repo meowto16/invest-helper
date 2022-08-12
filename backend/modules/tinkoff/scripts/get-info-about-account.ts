@@ -3,6 +3,7 @@ import * as process from 'process'
 import { BondsRepository, CurrenciesRepository, EtfsRepository, SharesRepository } from '../services/CacheData'
 
 import TinkoffApi from '../services/TinkoffAPI'
+import { Operations, Shared } from '../services/TinkoffAPI/types'
 
 !(async function main() {
   const portfolioId = process.env.TINKOFF_PORTFOLIO_ID
@@ -19,18 +20,24 @@ import TinkoffApi from '../services/TinkoffAPI'
 
   const { positions } = portfolio
 
-  const sharesFigi = positions
-    .filter((position) => position.instrument_type === 'share')
-    .map((position) => position.figi)
-  const bondsFigi = positions
-    .filter((position) => position.instrument_type === 'bond')
-    .map((position) => position.figi)
-  const etfFigi = positions
-    .filter((position) => position.instrument_type === 'etf')
-    .map((position) => position.figi)
-  const currenciesFigi = positions
-    .filter((position) => position.instrument_type === 'currency')
-    .map((position) => position.figi)
+  const instrumentsMap: Record<Shared.InstrumentType, Operations.PortfolioPosition['figi'][]> = {
+    share: [],
+    bond: [],
+    etf: [],
+    currency: []
+  }
+
+  const { share: shares, bond: bonds, etf: etfs, currency: currencies } = positions.reduce<typeof instrumentsMap>((acc, position) => {
+    const instruments: Shared.InstrumentType[] = ['share', 'bond', 'etf', 'currency']
+
+    instruments.forEach((instrument) => {
+      if (position.instrument_type === instrument) {
+        acc[instrument].push(position.figi)
+      }
+    })
+
+    return acc
+  }, instrumentsMap)
 
   const SharesCache = new SharesRepository()
   const EtfsCache = new EtfsRepository()
@@ -38,10 +45,10 @@ import TinkoffApi from '../services/TinkoffAPI'
   const BondsCache = new BondsRepository()
 
   const [sharesInfo, bondsInfo, etfInfo, currenciesInfo] = await Promise.all([
-    SharesCache.getAllByFigi(sharesFigi),
-    BondsCache.getAllByFigi(bondsFigi),
-    EtfsCache.getAllByFigi(etfFigi),
-    CurrenciesCache.getAllByFigi(currenciesFigi)
+    SharesCache.getAllByFigi(shares),
+    BondsCache.getAllByFigi(bonds),
+    EtfsCache.getAllByFigi(etfs),
+    CurrenciesCache.getAllByFigi(currencies)
   ])
 
   const groupByFigi = (arr: any) => arr.reduce((acc: any, cur: any) => {
@@ -72,11 +79,13 @@ import TinkoffApi from '../services/TinkoffAPI'
 
   console.log(`Текущее состояние портфеля:`)
   result.forEach((row: any) => {
-    const type =
-        row.instrument_type === 'share' ? 'Акция '
-        : row.instrument_type === 'bond' ? 'Облигация '
-        : row.instrument_type === 'etf' ? 'Фонд '
-        : row.instrument_type === 'currency' ? 'Валюта ' : '';
+    const typeMap: Record<Shared.InstrumentType, string> = {
+      share: 'Акция ',
+      bond: 'Облигация ',
+      etf: 'Фонд ',
+      currency: 'Валюта '
+    };
+    const type = typeMap[row.instrument_type as Shared.InstrumentType]
 
     const currentPrice = parseInt(row.current_price, 10);
     const sum = row.quantity * currentPrice
