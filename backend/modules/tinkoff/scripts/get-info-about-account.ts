@@ -107,8 +107,8 @@ import { Operations, Shared } from '../services/TinkoffAPI/types'
     };
     const type = typeMap[row.instrument_type as Shared.InstrumentType]
 
-    console.log(`-- ${type}"${row.name}" (${row.diffSign}${row.income}₽ / ${row.diffSign}${row.diffPercent} / ${row.quantity} шт.) \n` +
-      `---- На сумму: ${row.sum}₽\n` +
+    console.log(`-- ${type}"${row.name}" (${row.sum}₽ / ${row.diffSign}${row.income}₽ (${row.diffSign}${row.diffPercent}) / ${row.quantity} шт.) \n` +
+      `---- Потрачено: ${row.average * row.quantity}₽\n` +
       `---- Средняя: ${row.average}₽\n` +
       `---- Текущая цена: ${row.currentPrice}₽"\n`)
   })
