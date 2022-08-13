@@ -70,10 +70,30 @@ import { Operations, Shared } from '../services/TinkoffAPI/types'
   };
 
   const result = positions.map((position: any) => {
+    // @ts-ignore
+    const info = infoMap?.[position.instrument_type]?.[position.figi]
+
+    const currentPrice = parseInt(position.current_price, 10);
+    const sum = position.quantity * currentPrice
+    const average = parseInt(position.average_position_price, 10);
+    const diff = average - currentPrice;
+    const diffSign = diff <= 0 ? '+' : '-';
+    const diffPercent = (() => {
+      const percent = currentPrice / average;
+      const percentDiff = 1 - percent;
+      return +(percentDiff * 100).toFixed(2)
+    })();
+
     return {
       ...position,
-      // @ts-ignore
-      ...(infoMap?.[position.instrument_type]?.[position.figi])
+      ...(info),
+      currentPrice,
+      sum,
+      average,
+      diff: Math.abs(diff),
+      diffPercent: `${Math.abs(diffPercent)}%`,
+      diffSign,
+      income: Math.abs(diff * position.quantity),
     }
   });
 
@@ -87,10 +107,6 @@ import { Operations, Shared } from '../services/TinkoffAPI/types'
     };
     const type = typeMap[row.instrument_type as Shared.InstrumentType]
 
-    const currentPrice = parseInt(row.current_price, 10);
-    const sum = row.quantity * currentPrice
-    const average = parseInt(row.average_position_price, 10);
-
-    console.log(`-- ${type}"${row.name}" (${row.quantity} шт.). На сумму: ${sum} руб. Средняя: ${average} руб. Текущая цена: ${currentPrice} руб."`)
+    console.log(`-- ${type}"${row.name}" (${row.quantity} шт.). На сумму: ${row.sum} руб. (${row.diffSign}${row.diffPercent} / ${row.diffSign}${row.income} руб.) Средняя: ${row.average} руб. Текущая цена: ${row.currentPrice} руб."`)
   })
 })();
