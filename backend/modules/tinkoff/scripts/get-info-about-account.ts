@@ -91,6 +91,6 @@ import { Operations, Shared } from '../services/TinkoffAPI/types'
     const sum = row.quantity * currentPrice
     const average = parseInt(row.average_position_price, 10);
 
-    console.log(`${type}"${row.name}". На сумму: ${sum} руб. Средняя: ${average} руб. Текущая цена: ${currentPrice} руб."`)
+    console.log(`-- ${type}"${row.name}" (${row.quantity} шт.). На сумму: ${sum} руб. Средняя: ${average} руб. Текущая цена: ${currentPrice} руб."`)
   })
 })();
