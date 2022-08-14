@@ -4,7 +4,7 @@ import { Shared } from '../services/TinkoffAPI/types'
 import { groupBy } from '../utils'
 
 !(async function main() {
-  const { positions, total_amount_shares, total_amount_etf, total_amount_bonds, total_amount_currencies, total_amount_futures } = await OperatorService.getPortfolioExtended()
+  const { positions, total_amount_shares, total_amount_etf, total_amount_bonds, expected_yield, total_amount_currencies, total_amount_futures } = await OperatorService.getPortfolioExtended()
 
   const total = {
     shares: parseFloat(total_amount_shares),
@@ -15,6 +15,8 @@ import { groupBy } from '../utils'
   }
 
   const totalAmount = +(total.shares + total.etf + total.currencies + total.bonds + total.futures).toFixed(2)
+  const totalIncome = +positions.reduce((acc, position) => acc + position.income, 0).toFixed(2)
+  const sign = expected_yield >= 0 ? '+' : '-'
 
   const percentToTotal = {
     shares: +(total.shares / totalAmount * 100).toFixed(2),
@@ -34,6 +36,8 @@ import { groupBy } from '../utils'
     sum: number;
     positions: unknown[]
     percent: number;
+    income: number;
+    incomePercent: number;
   }
 
   const sharesInfoBySector = Object.entries(sharesSectors)
@@ -45,6 +49,8 @@ import { groupBy } from '../utils'
         name: sectorToNameMap[sector],
         percent: +(sum / total.shares * 100).toFixed(2),
         sum: +sum.toFixed(2),
+        income: 0,
+        incomePercent: 0,
         positions,
       })
 
@@ -54,13 +60,15 @@ import { groupBy } from '../utils'
 
   const bondsInfoBySector = Object.entries(bondsSectors)
     .reduce((acc, [sector, positions]) => {
-      const sum = positions.reduce((acc, position) => acc + position.sum, 0)
+      const sum = positions.reduce((acc, position) => acc + position.sum, 0);
 
       acc.push({
         sector,
         name: sectorToNameMap[sector],
         percent: +(sum / total.bonds * 100).toFixed(2),
         sum: +sum.toFixed(2),
+        income: 0,
+        incomePercent: 0,
         positions,
       })
 
@@ -69,7 +77,7 @@ import { groupBy } from '../utils'
     .sort((a, b) => b.sum - a.sum)
 
   console.log(
-    `Текущее состояние портфеля: ${totalAmount}₽\n`
+    `Текущее состояние портфеля: ${totalAmount}₽ (${sign}${totalIncome}₽ / ${sign}${Math.abs(expected_yield)}%)\n`
     + `Акции ${percentToTotal.shares}% / Облигации ${percentToTotal.bonds}% / Валюта ${percentToTotal.currencies}% / Фонды ${percentToTotal.etf}% / Фьючерсы ${percentToTotal.futures}%\n`
     + '======\n'
     + `Соотношение акций в портфеле по секторам: \n`
