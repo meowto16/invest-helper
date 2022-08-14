@@ -17,16 +17,8 @@ export namespace DataTypes {
   export type Int64 = number;
   export type Timestamp = number;
 
-  export type MoneyValue = {
-    currency: string;
-    units: Unit;
-    nano: Nano;
-  }
-
-  export type Quotation = {
-    units: Unit;
-    nano: Nano;
-  }
+  export type MoneyValue = string;
+  export type Quotation = number;
 }
 
 export namespace Shared {

@@ -4,10 +4,10 @@ import { OperatorService } from '../services/Operator'
 import { Shared } from '../services/TinkoffAPI/types'
 
 !(async function main() {
-  const portfolio = await OperatorService.getPortfolioExtended()
+  const { positions } = await OperatorService.getPortfolioExtended()
 
   console.log(`Текущее состояние портфеля:`)
-  portfolio.forEach((row: any) => {
+  positions.forEach((row: any) => {
     const typeMap: Record<Shared.InstrumentType, string> = {
       share: 'Акция ',
       bond: 'Облигация ',

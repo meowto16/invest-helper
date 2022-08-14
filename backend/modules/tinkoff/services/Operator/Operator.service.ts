@@ -17,7 +17,7 @@ export const OperatorService = {
       account_id: portfolioId
     });
 
-    const { positions } = portfolio
+    const { positions, ...other } = portfolio
 
     const instrumentsMap: Record<Shared.InstrumentType, Operations.PortfolioPosition['figi'][]> = {
       share: [],
@@ -68,7 +68,7 @@ export const OperatorService = {
       currency: currenciesInfoByFigi,
     };
 
-    return positions.map((position: any) => {
+    const positionsExtended = positions.map((position: any) => {
       // @ts-ignore
       const info = infoMap?.[position.instrument_type]?.[position.figi]
 
@@ -95,5 +95,7 @@ export const OperatorService = {
         income: Math.abs(diff * position.quantity),
       }
     })
+
+    return { positions: positionsExtended, ...other }
   }
 }

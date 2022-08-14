@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "name": "tinkoff",
   "scripts": {
-    "postinstall": "npx ts-node scripts/postinstall.ts",
     "tinkoff:get-info-about-account": "npx ts-node scripts/get-info-about-account.ts",
+    "tinkoff:get-info-by-sectors": "npx ts-node scripts/get-info-by-sectors.ts",
     "tinkoff:update-data": "npx ts-node scripts/update-data.ts"
   },
   "license": "MIT",
