@@ -72,9 +72,9 @@ export const OperatorService = {
       // @ts-ignore
       const info = infoMap?.[position.instrument_type]?.[position.figi]
 
-      const currentPrice = parseInt(position.current_price, 10);
+      const currentPrice = parseFloat(position.current_price) + parseFloat((position.current_nkd || 0));
       const sum = position.quantity * currentPrice
-      const average = parseInt(position.average_position_price, 10);
+      const average = parseFloat(position.average_position_price);
       const diff = average - currentPrice;
       const diffSign = diff <= 0 ? '+' : '-';
       const diffPercent = (() => {
