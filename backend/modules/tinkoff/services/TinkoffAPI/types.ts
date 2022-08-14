@@ -45,6 +45,50 @@ export namespace Shared {
   export type CountryOfRisk = string;
   export type CountryOfRiskName = string;
   export type Sector = string;
+  export type SharesSector =
+  | 'it'
+  | 'consumer'
+  | 'health_care'
+  | 'financial'
+  | 'other'
+  | 'industrials'
+  | 'real_estate'
+  | 'energy'
+  | 'utilities'
+  | 'materials'
+  | 'telecom'
+  | 'ecomaterials'
+  | 'green_buildings'
+  | 'green_energy'
+  | 'electrocars'
+  | '';
+  export type EtfsSector =
+  | 'materials'
+  | 'other'
+  | 'financial'
+  | 'energy'
+  | 'health_care'
+  | 'it'
+  | 'industrials'
+  | 'real_estate'
+  | 'government'
+  | 'municipal'
+  | '';
+  export type BondsSector =
+    | 'consumer'
+    | 'financial'
+    | 'other'
+    | 'real_estate'
+    | 'government'
+    | 'utilities'
+    | 'municipal'
+    | 'materials'
+    | 'industrials'
+    | 'energy'
+    | 'it'
+    | 'telecom'
+    | 'health_care'
+    | '';
   export type IssueKind = 'documentary' | 'non_documentary'
   export type OtcFlag = boolean;
   export type BuyAvailableFlag = boolean;
@@ -168,6 +212,7 @@ export namespace Instruments {
     perpetual_flag: boolean;
     amortization_flag: boolean;
     min_price_increment: DataTypes.Quotation;
+    sector: Shared.BondsSector;
   }
 
   export type Etf = WithBasicInfo & WithRiskRate & WithCandles & {
@@ -176,6 +221,7 @@ export namespace Instruments {
     released_date: DataTypes.Timestamp;
     rebalancing_freq: string;
     min_price_increment: DataTypes.Quotation;
+    sector: Shared.EtfsSector;
   }
 
   export type Share = WithBasicInfo & WithRiskRate & WithCandles & {
@@ -187,6 +233,7 @@ export namespace Instruments {
     div_yield_flag: boolean;
     share_type: ShareType;
     min_price_increment: DataTypes.Quotation;
+    sector: Shared.SharesSector;
   }
 
   export type Currency = WithBasicInfo & WithRiskRate & WithCandles & {

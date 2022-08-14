@@ -1,8 +1,8 @@
 import 'dotenv/config'
 import * as sqlite3 from 'sqlite3'
 
-import { createApi } from '../services'
 import { DATA_PATH } from '../config/data'
+import TinkoffApi from '../services/TinkoffAPI'
 import { Instruments } from '../services/TinkoffAPI/types'
 
 import InstrumentStatus = Instruments.InstrumentStatus
@@ -11,8 +11,6 @@ import InstrumentMethod = Instruments.InstrumentMethod
 import InstrumentTableName = Instruments.InstrumentTableName
 
 !(async function main() {
-  const api = createApi()
-
   const db = new sqlite3.Database(DATA_PATH);
 
   const updateData = {
@@ -31,11 +29,8 @@ import InstrumentTableName = Instruments.InstrumentTableName
       }
       
       return new Promise<void>((resolve, reject) => {
-        api.instruments[instrumentMethod]({ instrument_status: InstrumentStatus.INSTRUMENT_STATUS_BASE })
+        TinkoffApi.instruments[instrumentMethod]({ instrument_status: InstrumentStatus.INSTRUMENT_STATUS_BASE })
           .then((response) => {
-            const instruments = response.instruments
-            const values = instruments.map(({ figi, ticker, name }) => `("${figi}", "${ticker}", "${name}")`)
-            
             const tableInstrumentMap: Record<InstrumentType, InstrumentTableName> = {
               etf: 'etfs',
               share: 'shares',
@@ -49,6 +44,18 @@ import InstrumentTableName = Instruments.InstrumentTableName
               fail?.()
               return reject()
             }
+
+            const instruments = response.instruments
+            const values = instruments.map(({ figi, ticker, name, sector }) => {
+              const values = [
+                `"${figi}"`,
+                `"${ticker}"`,
+                `"${name}"`,
+                ...(tableName === 'etfs' || tableName === 'shares' || tableName === 'bonds' ? [`"${sector}"`] : [])
+              ]
+
+              return `(${values.join(',')})`
+            })
             
             db.exec(`
               DELETE FROM "${tableName}";
