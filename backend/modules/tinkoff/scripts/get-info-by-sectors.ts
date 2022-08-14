@@ -43,14 +43,15 @@ import { groupBy } from '../utils'
   const sharesInfoBySector = Object.entries(sharesSectors)
     .reduce((acc, [sector, positions]) => {
       const sum = positions.reduce((acc, position) => acc + position.sum, 0)
+      const income = positions.reduce((acc, position) => acc + position.income, 0)
 
       acc.push({
         sector,
         name: sectorToNameMap[sector],
         percent: +(sum / total.shares * 100).toFixed(2),
         sum: +sum.toFixed(2),
-        income: 0,
-        incomePercent: 0,
+        income: +income.toFixed(2),
+        incomePercent: +(income / totalIncome).toFixed(2),
         positions,
       })
 
@@ -60,15 +61,16 @@ import { groupBy } from '../utils'
 
   const bondsInfoBySector = Object.entries(bondsSectors)
     .reduce((acc, [sector, positions]) => {
-      const sum = positions.reduce((acc, position) => acc + position.sum, 0);
+      const sum = positions.reduce((acc, position) => acc + position.sum, 0)
+      const income = positions.reduce((acc, position) => acc + position.income, 0)
 
       acc.push({
         sector,
         name: sectorToNameMap[sector],
         percent: +(sum / total.bonds * 100).toFixed(2),
         sum: +sum.toFixed(2),
-        income: 0,
-        incomePercent: 0,
+        income: +income.toFixed(2),
+        incomePercent: +(income / totalIncome).toFixed(2),
         positions,
       })
 
@@ -81,9 +83,9 @@ import { groupBy } from '../utils'
     + `Акции ${percentToTotal.shares}% / Облигации ${percentToTotal.bonds}% / Валюта ${percentToTotal.currencies}% / Фонды ${percentToTotal.etf}% / Фьючерсы ${percentToTotal.futures}%\n`
     + '======\n'
     + `Соотношение акций в портфеле по секторам: \n`
-    + sharesInfoBySector.map((info) => `-- ${info.name} (${info.percent}%): ${info.sum}₽. ${info.positions.length} эмит.\n`).join('')
+    + sharesInfoBySector.map((info) => `-- ${info.name} (${info.percent}% от портфеля). В сумме: ${info.sum}₽. ${info.positions.length} эмит. Доходность: ${info.income}₽ / ${info.incomePercent}%\n`).join('')
     + '======\n'
     + 'Соотношение облигаций в портфеле по секторам \n'
-    + bondsInfoBySector.map((info) => `-- ${info.name} (${info.percent}%): ${info.sum}₽. ${info.positions.length} эмит.\n`).join('')
+    + bondsInfoBySector.map((info) => `-- ${info.name} (${info.percent}%): ${info.sum}₽. ${info.positions.length} эмит. Доходность: ${info.income}₽ / ${info.incomePercent}%\n`).join('')
   )
 })();

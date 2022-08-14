@@ -74,22 +74,24 @@ export const OperatorService = {
 
       const currentPrice = parseFloat(position.current_price) + parseFloat((position.current_nkd || 0));
       const sum = position.quantity * currentPrice
-      const average = parseFloat(position.average_position_price);
-      const diff = currentPrice - average;
-      const diffSign = diff >= 0 ? '+' : '-';
+      const average = parseFloat(position.average_position_price)
+      const sumAverage = position.quantity * average
+      const diff = currentPrice - average
+      const diffSign = diff >= 0 ? '+' : '-'
       const diffPercent = (() => {
         const percent = currentPrice / average;
         const percentDiff = 1 - percent;
         const result = +(percentDiff * 100).toFixed(2)
 
         return diffSign === '-' ? -Math.abs(result) : Math.abs(result)
-      })();
+      })()
 
       return {
         ...position,
         ...(info),
         currentPrice,
         sum,
+        sumAverage,
         average,
         diff: +diff.toFixed(2),
         diffPercent,
