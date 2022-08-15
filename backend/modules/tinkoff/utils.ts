@@ -10,11 +10,13 @@ export const groupBy = <T = unknown, K extends keyof T = any>(arr: T[], key: K):
 
 export const currency = {
   rub: (currency: number) => new Intl.NumberFormat(
-    'ru-RU',
+    'ru',
     {
       currency: 'RUB',
       currencyDisplay: 'symbol',
-      style: 'currency'
+      style: 'currency',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
     })
     .format(currency)
 }
