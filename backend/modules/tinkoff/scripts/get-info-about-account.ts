@@ -2,6 +2,7 @@ import 'dotenv/config'
 
 import { OperatorService } from '../services/Operator'
 import { Shared } from '../services/TinkoffAPI/types'
+import { currency } from '../utils'
 
 !(async function main() {
   const { positions } = await OperatorService.getPortfolioExtended()
@@ -17,14 +18,13 @@ import { Shared } from '../services/TinkoffAPI/types'
     const type = typeMap[row.instrument_type as Shared.InstrumentType]
 
     const name = `${type}"${row.name}"`
-    const sum = `${row.sum}₽`
-    const income = `${row.diffSign}${Math.abs(row.income)}₽`
+    const sum = currency.rub(row.sum)
+    const income = `${row.diffSign}${currency.rub(Math.abs(row.income))}`
     const incomePercent = `${row.diffSign}${Math.abs(row.diffPercent)}%`
     const quantity = `${row.quantity} шт.`
-    const expenses = `${row.average * row.quantity}₽`
-    const average = `${row.average}₽`
-    const currentPrice = `${row.currentPrice}₽`
-
+    const expenses = currency.rub(row.average * row.quantity)
+    const average = currency.rub(row.average)
+    const currentPrice = currency.rub(row.currentPrice)
 
     console.log(`-- ${name} (${sum} / ${income} (${incomePercent}) / ${quantity}) \n` +
       `---- Потрачено: ${expenses} \n` +
