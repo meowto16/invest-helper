@@ -1,7 +1,7 @@
 import { sectorToNameMap } from '../constants'
 import { OperatorService } from '../services/Operator'
 import { Shared } from '../services/TinkoffAPI/types'
-import { groupBy } from '../utils'
+import { currency, groupBy } from '../utils'
 
 !(async function main() {
   const { positions, total_amount_shares, total_amount_etf, total_amount_bonds, expected_yield, total_amount_currencies, total_amount_futures } = await OperatorService.getPortfolioExtended()
@@ -79,13 +79,13 @@ import { groupBy } from '../utils'
     .sort((a, b) => b.sum - a.sum)
 
   console.log(
-    `Текущее состояние портфеля: ${totalAmount}₽ (${sign}${totalIncome}₽ / ${sign}${Math.abs(expected_yield)}%)\n`
+    `Текущее состояние портфеля: ${currency.rub(totalAmount)} (${sign}${currency.rub(totalIncome)} / ${sign}${Math.abs(expected_yield)}%)\n`
     + `Акции ${percentToTotal.shares}% / Облигации ${percentToTotal.bonds}% / Валюта ${percentToTotal.currencies}% / Фонды ${percentToTotal.etf}% / Фьючерсы ${percentToTotal.futures}%\n`
     + '======\n'
     + `Соотношение акций в портфеле по секторам: \n`
-    + sharesInfoBySector.map((info) => `-- ${info.name} (${info.percent}% от портфеля). В сумме: ${info.sum}₽. ${info.positions.length} эмит. Доходность: ${info.income}₽ / ${info.incomePercent}%\n`).join('')
+    + sharesInfoBySector.map((info) => `-- ${info.name} (${info.percent}% от портфеля). В сумме: ${currency.rub(info.sum)}. ${info.positions.length} эмит. Доходность: ${currency.rub(info.income)} / ${info.incomePercent}%\n`).join('')
     + '======\n'
     + 'Соотношение облигаций в портфеле по секторам \n'
-    + bondsInfoBySector.map((info) => `-- ${info.name} (${info.percent}%): ${info.sum}₽. ${info.positions.length} эмит. Доходность: ${info.income}₽ / ${info.incomePercent}%\n`).join('')
+    + bondsInfoBySector.map((info) => `-- ${info.name} (${info.percent}%): ${currency.rub(info.sum)}. ${info.positions.length} эмит. Доходность: ${currency.rub(info.income)} / ${info.incomePercent}%\n`).join('')
   )
 })();

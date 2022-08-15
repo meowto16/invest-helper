@@ -8,15 +8,13 @@ export const groupBy = <T = unknown, K extends keyof T = any>(arr: T[], key: K):
   }, {} as Record<T[K], T[]>);
 }
 
-export const currency = () => {
-  return {
-    rub: (currency: number) => new Intl.NumberFormat(
-      'ru-RU',
-      {
-        currency: 'RUB',
-        currencyDisplay: 'symbol',
-        style: 'currency'
-      })
-      .format(currency)
-  }
+export const currency = {
+  rub: (currency: number) => new Intl.NumberFormat(
+    'ru-RU',
+    {
+      currency: 'RUB',
+      currencyDisplay: 'symbol',
+      style: 'currency'
+    })
+    .format(currency)
 }
