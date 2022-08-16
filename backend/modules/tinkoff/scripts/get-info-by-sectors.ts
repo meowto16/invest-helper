@@ -78,7 +78,7 @@ import { currency, groupBy } from '../utils'
     }, [] as SectorInfo[])
     .sort((a, b) => b.sum - a.sum)
 
-  const getPositionsDesc = (positions: any[]): string => {
+  const getPositionsDesc = (positions: any[], sectorPositionsSum: number): string => {
     return positions
       .sort((a, b) => b.sum - a.sum)
       .map((position) => {
@@ -87,8 +87,9 @@ import { currency, groupBy } from '../utils'
         const percent = `${position.diffSign}${Math.abs(position.diffPercent)}%`
         const from = currency.rub(position.average)
         const to = currency.rub(position.currentPrice)
+        const percentInSector = +(position.sum / sectorPositionsSum * 100).toFixed(2) + '%'
 
-        return `---- ${position.name}. Сумма: ${sum}. Доход: (${income} / ${percent}). Цена: ${from} → ${to}`
+        return `---- ${position.name} (${percentInSector} от сектора). Сумма: ${sum}. Доход: (${income} / ${percent}). Цена: ${from} → ${to}`
       })
       .join('\n')
   }
@@ -97,17 +98,17 @@ import { currency, groupBy } from '../utils'
     `Текущее состояние портфеля: ${currency.rub(totalAmount)} (${sign}${currency.rub(totalIncome)} / ${sign}${Math.abs(expected_yield)}%)\n`
     + `Акции ${percentToTotal.shares}% / Облигации ${percentToTotal.bonds}% / Валюта ${percentToTotal.currencies}% / Фонды ${percentToTotal.etf}% / Фьючерсы ${percentToTotal.futures}%\n`
     + '\nСоотношение акций в портфеле по секторам: \n'
-    + '======\n'
+    + '==============================\n'
     + sharesInfoBySector.map((info) => {
       const title = `-- ${info.name} (${info.percent}% от портфеля). В сумме: ${currency.rub(info.sum)}. ${info.positions.length} эмит. Доходность: ${currency.rub(info.income)} / ${info.incomePercent}%\n`
-      const desc = getPositionsDesc(info.positions);
+      const desc = getPositionsDesc(info.positions, info.sum);
 
       return title + desc + '\n';
     }).join('\n')
     + '\nСоотношение облигаций в портфеле по секторам \n'
     + bondsInfoBySector.map((info) => {
       const title = `-- ${info.name} (${info.percent}%): ${currency.rub(info.sum)}. ${info.positions.length} эмит. Доходность: ${currency.rub(info.income)} / ${info.incomePercent}%\n`
-      const desc = getPositionsDesc(info.positions);
+      const desc = getPositionsDesc(info.positions, info.sum);
 
       return title + desc + '\n';
 
