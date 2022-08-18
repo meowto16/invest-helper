@@ -1,3 +1,5 @@
+const chalk = require('chalk')
+
 import { sectorToNameMap } from '../constants'
 import { OperatorService } from '../services/Operator'
 import { Shared } from '../services/TinkoffAPI/types'
@@ -82,15 +84,17 @@ import { currency, groupBy } from '../utils'
     return positions
       .sort((a, b) => b.sum - a.sum)
       .map((position) => {
+        const chalkIncome = (str: string) => position.diffSign === '-' ? chalk.red(str) : chalk.green(str)
+
         const sum = currency.rub(position.sum);
-        const income = `${position.diffSign}${currency.rub(Math.abs(position.income))}`;
+        const income = `${position.diffSign}${currency.rub(Math.abs(position.income))}`
         const percent = `${position.diffSign}${Math.abs(position.diffPercent)}%`
         const from = currency.rub(position.average)
         const to = currency.rub(position.currentPrice)
         const percentInSector = +(position.sum / sectorPositionsSum * 100).toFixed(2) + '%'
         const percentInInstrumentType = +(position.sum / instrumentTypeSum * 100).toFixed(2) + '%'
 
-        return `---- ${position.name} (${percentInSector} от сектора / ${percentInInstrumentType} от инструмента). Сумма: ${sum}. Доход: (${income} / ${percent}). Цена: ${from} → ${to}`
+        return `---- ${chalk.bgGray(position.name)} (${percentInSector} от сектора / ${percentInInstrumentType} от инструмента). Сумма: ${chalk.underline(sum)}. Доход: (${chalkIncome(`${income}`)} / ${chalkIncome(`${percent}`)}). Цена: ${chalkIncome(`${from} → ${to}`)}`
       })
       .join('\n')
   }
@@ -101,14 +105,40 @@ import { currency, groupBy } from '../utils'
     + '\nСоотношение акций в портфеле по секторам: \n'
     + '==============================\n'
     + sharesInfoBySector.map((info) => {
-      const title = `-- ${info.name} (${info.percent}% от портфеля). В сумме: ${currency.rub(info.sum)}. ${info.positions.length} эмит. Доходность: ${currency.rub(info.income)} / ${info.incomePercent}%\n`
-      const desc = getPositionsDesc(info.positions, info.sum, total.shares);
+      const name = info.name
+      const percent = `${info.percent}%`
+      const sum = currency.rub(info.sum)
+      const amount = info.positions.length
+      const income = currency.rub(info.income)
+      const incomePercent = info.incomePercent + '%'
+
+      const chalkIncome = (str: string) => {
+        if (info.income === 0) return chalk.grey(str)
+        if (info.income > 0) return chalk.green(str)
+        if (info.income < 0) return chalk.red(str)
+      }
+
+      const title = `-- ${chalk.bgCyanBright(name)} (${percent}): ${chalk.underline(sum)}. ${amount} эмит. Доходность: ${chalkIncome(income)} / ${chalkIncome(incomePercent)}\n`
+      const desc = getPositionsDesc(info.positions, info.sum, total.bonds);
 
       return title + desc + '\n';
     }).join('\n')
-    + '\nСоотношение облигаций в портфеле по секторам \n'
+    + '\n' + chalk.underline(chalk.bold('Соотношение облигаций в портфеле по секторам')) + '\n'
     + bondsInfoBySector.map((info) => {
-      const title = `-- ${info.name} (${info.percent}%): ${currency.rub(info.sum)}. ${info.positions.length} эмит. Доходность: ${currency.rub(info.income)} / ${info.incomePercent}%\n`
+      const name = info.name
+      const percent = `${info.percent}%`
+      const sum = currency.rub(info.sum)
+      const amount = info.positions.length
+      const income = currency.rub(info.income)
+      const incomePercent = info.incomePercent + '%'
+
+      const chalkIncome = (str: string) => {
+        if (info.income === 0) return chalk.grey(str)
+        if (info.income > 0) return chalk.green(str)
+        if (info.income < 0) return chalk.red(str)
+      }
+
+      const title = `-- ${chalk.bgCyanBright(name)} (${percent}): ${chalk.underline(sum)}. ${amount} эмит. Доходность: ${chalkIncome(income)} / ${chalkIncome(incomePercent)}\n`
       const desc = getPositionsDesc(info.positions, info.sum, total.bonds);
 
       return title + desc + '\n';
