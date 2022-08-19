@@ -99,50 +99,33 @@ import { currency, groupBy } from '../utils'
       .join('\n')
   }
 
+  const getInfo = (info: any) => {
+    const name = info.name
+    const percent = `${info.percent}%`
+    const sum = currency.rub(info.sum)
+    const amount = info.positions.length
+    const income = currency.rub(info.income)
+    const incomePercent = info.incomePercent + '%'
+
+    const chalkIncome = (str: string) => {
+      if (info.income === 0) return chalk.grey(str)
+      if (info.income > 0) return chalk.green(str)
+      if (info.income < 0) return chalk.red(str)
+    }
+
+    const title = `-- ${chalk.bgCyanBright(name)} (${percent}): ${chalk.underline(sum)}. ${amount} эмит. Доходность: ${chalkIncome(income)} / ${chalkIncome(incomePercent)}\n`
+    const desc = getPositionsDesc(info.positions, info.sum, total.bonds);
+
+    return title + desc + '\n';
+  }
+
   console.log(
     `Текущее состояние портфеля: ${currency.rub(totalAmount)} (${sign}${currency.rub(totalIncome)} / ${sign}${Math.abs(expected_yield)}%)\n`
     + `Акции ${percentToTotal.shares}% / Облигации ${percentToTotal.bonds}% / Валюта ${percentToTotal.currencies}% / Фонды ${percentToTotal.etf}% / Фьючерсы ${percentToTotal.futures}%\n`
     + '\nСоотношение акций в портфеле по секторам: \n'
     + '==============================\n'
-    + sharesInfoBySector.map((info) => {
-      const name = info.name
-      const percent = `${info.percent}%`
-      const sum = currency.rub(info.sum)
-      const amount = info.positions.length
-      const income = currency.rub(info.income)
-      const incomePercent = info.incomePercent + '%'
-
-      const chalkIncome = (str: string) => {
-        if (info.income === 0) return chalk.grey(str)
-        if (info.income > 0) return chalk.green(str)
-        if (info.income < 0) return chalk.red(str)
-      }
-
-      const title = `-- ${chalk.bgCyanBright(name)} (${percent}): ${chalk.underline(sum)}. ${amount} эмит. Доходность: ${chalkIncome(income)} / ${chalkIncome(incomePercent)}\n`
-      const desc = getPositionsDesc(info.positions, info.sum, total.bonds);
-
-      return title + desc + '\n';
-    }).join('\n')
+    + sharesInfoBySector.map(getInfo).join('\n')
     + '\n' + chalk.underline(chalk.bold('Соотношение облигаций в портфеле по секторам')) + '\n'
-    + bondsInfoBySector.map((info) => {
-      const name = info.name
-      const percent = `${info.percent}%`
-      const sum = currency.rub(info.sum)
-      const amount = info.positions.length
-      const income = currency.rub(info.income)
-      const incomePercent = info.incomePercent + '%'
-
-      const chalkIncome = (str: string) => {
-        if (info.income === 0) return chalk.grey(str)
-        if (info.income > 0) return chalk.green(str)
-        if (info.income < 0) return chalk.red(str)
-      }
-
-      const title = `-- ${chalk.bgCyanBright(name)} (${percent}): ${chalk.underline(sum)}. ${amount} эмит. Доходность: ${chalkIncome(income)} / ${chalkIncome(incomePercent)}\n`
-      const desc = getPositionsDesc(info.positions, info.sum, total.bonds);
-
-      return title + desc + '\n';
-
-    }).join('\n')
+    + bondsInfoBySector.map(getInfo).join('\n')
   )
 })();
