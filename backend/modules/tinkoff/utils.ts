@@ -30,3 +30,5 @@ export const getSmartlabLink = (ticker: string, type: 'bonds' | 'shares') => {
       return `https://smart-lab.ru/q/${ticker}/f/y/`
   }
 }
+
+export const getMOEXLink = (ticker: string) => `https://www.moex.com/ru/issue.aspx?code=${ticker}`
