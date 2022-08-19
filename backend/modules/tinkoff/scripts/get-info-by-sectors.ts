@@ -3,7 +3,7 @@ const chalk = require('chalk')
 import { sectorToNameMap } from '../constants'
 import { OperatorService } from '../services/Operator'
 import { Shared } from '../services/TinkoffAPI/types'
-import { currency, getSmartlabLink, groupBy } from '../utils'
+import { currency, getMOEXLink, getSmartlabLink, groupBy } from '../utils'
 
 !(async function main() {
   const { positions, total_amount_shares, total_amount_etf, total_amount_bonds, expected_yield, total_amount_currencies, total_amount_futures } = await OperatorService.getPortfolioExtended()
@@ -106,7 +106,8 @@ import { currency, getSmartlabLink, groupBy } from '../utils'
              + `------ Цена: ${chalkIncome(`${from} → ${to}`)}\n`
              + `------ Соотношение: ${percentInSector} от сектора / ${percentInInstrumentType} от инструмента.\n`
              + `------ Сумма: ${chalk.underline(sum)}.\n`
-             + `------ Smartlab: ${getSmartlabLink(position.ticker, type)}`
+             + `------ SmartLab: ${getSmartlabLink(position.ticker, type)}\n`
+             + `------ MOEX: ${getMOEXLink(position.ticker)}`
       })
       .join('\n')
   }
