@@ -20,3 +20,13 @@ export const currency = {
     })
     .format(currency)
 }
+
+export const getSmartlabLink = (ticker: string, type: 'bonds' | 'shares') => {
+  switch (type) {
+    case 'bonds':
+      return `https://smart-lab.ru/q/bonds/${ticker}/f/y/`
+    case 'shares':
+    default:
+      return `https://smart-lab.ru/q/${ticker}/f/y/`
+  }
+}

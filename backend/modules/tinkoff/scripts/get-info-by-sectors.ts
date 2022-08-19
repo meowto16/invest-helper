@@ -3,7 +3,7 @@ const chalk = require('chalk')
 import { sectorToNameMap } from '../constants'
 import { OperatorService } from '../services/Operator'
 import { Shared } from '../services/TinkoffAPI/types'
-import { currency, groupBy } from '../utils'
+import { currency, getSmartlabLink, groupBy } from '../utils'
 
 !(async function main() {
   const { positions, total_amount_shares, total_amount_etf, total_amount_bonds, expected_yield, total_amount_currencies, total_amount_futures } = await OperatorService.getPortfolioExtended()
@@ -80,7 +80,14 @@ import { currency, groupBy } from '../utils'
     }, [] as SectorInfo[])
     .sort((a, b) => b.sum - a.sum)
 
-  const getPositionsDesc = (positions: any[], sectorPositionsSum: number, instrumentTypeSum: number): string => {
+  const getPositionsDesc = (positions: any[], sectorPositionsSum: number, type: 'shares' | 'bonds'): string => {
+    const totalSum: number = (() => {
+      if (type === 'shares') return total.shares;
+      if (type === 'bonds') return total.bonds;
+
+      return 0;
+    })();
+
     return positions
       .sort((a, b) => b.sum - a.sum)
       .map((position) => {
@@ -92,18 +99,19 @@ import { currency, groupBy } from '../utils'
         const from = currency.rub(position.average)
         const to = currency.rub(position.currentPrice)
         const percentInSector = +(position.sum / sectorPositionsSum * 100).toFixed(2) + '%'
-        const percentInInstrumentType = +(position.sum / instrumentTypeSum * 100).toFixed(2) + '%'
+        const percentInInstrumentType = +(position.sum / totalSum * 100).toFixed(2) + '%'
 
-        return `---- ${chalk.bgGray(`${position.name} ${position.ticker}`)} \n`
-             + `------ Доход: (${chalkIncome(`${income}`)} / ${chalkIncome(`${percent}`)}).\n`
+        return `---- ${chalk.bgGray(`${position.name} (${position.ticker})`)} \n`
+             + `------ Доход: ${chalkIncome(`${income}`)} / ${chalkIncome(`${percent}`)}.\n`
              + `------ Цена: ${chalkIncome(`${from} → ${to}`)}\n`
              + `------ Соотношение: ${percentInSector} от сектора / ${percentInInstrumentType} от инструмента.\n`
-             + `------ Сумма: ${chalk.underline(sum)}.`
+             + `------ Сумма: ${chalk.underline(sum)}.\n`
+             + `------ Smartlab: ${getSmartlabLink(position.ticker, type)}`
       })
       .join('\n')
   }
 
-  const getInfo = (info: any) => {
+  const getInfo = (info: any, type: 'shares' | 'bonds') => {
     const name = info.name
     const percent = `${info.percent}%`
     const sum = currency.rub(info.sum)
@@ -118,7 +126,7 @@ import { currency, groupBy } from '../utils'
     }
 
     const title = `-- ${chalk.bgCyanBright(name)} (${percent}): ${chalk.underline(sum)}. ${amount} эмит. Доходность: ${chalkIncome(income)} / ${chalkIncome(incomePercent)}\n`
-    const desc = getPositionsDesc(info.positions, info.sum, total.bonds);
+    const desc = getPositionsDesc(info.positions, info.sum, type);
 
     return title + desc + '\n';
   }
@@ -128,8 +136,8 @@ import { currency, groupBy } from '../utils'
     + `Акции ${percentToTotal.shares}% / Облигации ${percentToTotal.bonds}% / Валюта ${percentToTotal.currencies}% / Фонды ${percentToTotal.etf}% / Фьючерсы ${percentToTotal.futures}%\n`
     + '\nСоотношение акций в портфеле по секторам: \n'
     + '==============================\n'
-    + sharesInfoBySector.map(getInfo).join('\n')
+    + sharesInfoBySector.map((info) => getInfo(info, 'shares')).join('\n')
     + '\n' + chalk.underline(chalk.bold('Соотношение облигаций в портфеле по секторам')) + '\n'
-    + bondsInfoBySector.map(getInfo).join('\n')
+    + bondsInfoBySector.map((info) => getInfo(info, 'bonds')).join('\n')
   )
 })();
