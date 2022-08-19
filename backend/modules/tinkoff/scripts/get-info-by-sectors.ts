@@ -94,7 +94,11 @@ import { currency, groupBy } from '../utils'
         const percentInSector = +(position.sum / sectorPositionsSum * 100).toFixed(2) + '%'
         const percentInInstrumentType = +(position.sum / instrumentTypeSum * 100).toFixed(2) + '%'
 
-        return `---- ${chalk.bgGray(position.name)} (${percentInSector} от сектора / ${percentInInstrumentType} от инструмента). Сумма: ${chalk.underline(sum)}. Доход: (${chalkIncome(`${income}`)} / ${chalkIncome(`${percent}`)}). Цена: ${chalkIncome(`${from} → ${to}`)}`
+        return `---- ${chalk.bgGray(`${position.name} ${position.ticker}`)} \n`
+             + `------ Доход: (${chalkIncome(`${income}`)} / ${chalkIncome(`${percent}`)}).\n`
+             + `------ Цена: ${chalkIncome(`${from} → ${to}`)}\n`
+             + `------ Соотношение: ${percentInSector} от сектора / ${percentInInstrumentType} от инструмента.\n`
+             + `------ Сумма: ${chalk.underline(sum)}.`
       })
       .join('\n')
   }
