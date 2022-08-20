@@ -133,7 +133,7 @@ import { currency, getMOEXLink, getSmartlabLink, groupBy } from '../utils'
   }
 
   console.log(
-    `Текущее состояние портфеля: ${currency.rub(totalAmount)} (${sign}${currency.rub(totalIncome)} / ${sign}${Math.abs(expected_yield)}%)\n`
+    `Текущее состояние портфеля: ${currency.rub(totalAmount)} (${sign}${currency.rub(totalIncome)} / ${sign}${Math.abs(+expected_yield.toFixed(2))}%)\n`
     + `Акции ${percentToTotal.shares}% / Облигации ${percentToTotal.bonds}% / Валюта ${percentToTotal.currencies}% / Фонды ${percentToTotal.etf}% / Фьючерсы ${percentToTotal.futures}%\n`
     + '\nСоотношение акций в портфеле по секторам: \n'
     + '==============================\n'
