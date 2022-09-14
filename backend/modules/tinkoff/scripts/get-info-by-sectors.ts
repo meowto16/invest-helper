@@ -3,7 +3,7 @@ const chalk = require('chalk')
 import { sectorToNameMap } from '../constants'
 import { OperatorService } from '../services/Operator'
 import { Shared } from '../services/TinkoffAPI/types'
-import { currency, getMOEXLink, getSmartlabLink, groupBy } from '../utils'
+import { currency, getMOEXLink, getSmartlabLink, groupBy, chalkIncome } from '../utils'
 
 !(async function main() {
   const { positions, total_amount_shares, total_amount_etf, total_amount_bonds, expected_yield, total_amount_currencies, total_amount_futures } = await OperatorService.getPortfolioExtended()
@@ -91,7 +91,11 @@ import { currency, getMOEXLink, getSmartlabLink, groupBy } from '../utils'
     return positions
       .sort((a, b) => b.sum - a.sum)
       .map((position) => {
-        const chalkIncome = (str: string) => position.diffSign === '-' ? chalk.red(str) : chalk.green(str)
+        const colorIncome = (str: string) => {
+          return position.diffSign === '-'
+            ? chalkIncome(-1, str)
+            : chalkIncome(1, str)
+        }
 
         const sum = currency.rub(position.sum);
         const income = `${position.diffSign}${currency.rub(Math.abs(position.income))}`
@@ -102,8 +106,8 @@ import { currency, getMOEXLink, getSmartlabLink, groupBy } from '../utils'
         const percentInInstrumentType = +(position.sum / totalSum * 100).toFixed(2) + '%'
 
         return `---- ${chalk.bgGray(`${position.name} (${position.ticker})`)} \n`
-             + `------ Доход: ${chalkIncome(`${income}`)} / ${chalkIncome(`${percent}`)}.\n`
-             + `------ Цена: ${chalkIncome(`${from} → ${to}`)}\n`
+             + `------ Доход: ${colorIncome(`${income}`)} / ${colorIncome(`${percent}`)}.\n`
+             + `------ Цена: ${colorIncome(`${from} → ${to}`)}\n`
              + `------ Соотношение: ${percentInSector} от сектора / ${percentInInstrumentType} от инструмента.\n`
              + `------ Сумма: ${chalk.underline(sum)}.\n`
              + `------ SmartLab: ${getSmartlabLink(position.ticker, type)}\n`
@@ -120,20 +124,25 @@ import { currency, getMOEXLink, getSmartlabLink, groupBy } from '../utils'
     const income = currency.rub(info.income)
     const incomePercent = info.incomePercent + '%'
 
-    const chalkIncome = (str: string) => {
-      if (info.income === 0) return chalk.grey(str)
-      if (info.income > 0) return chalk.green(str)
-      if (info.income < 0) return chalk.red(str)
-    }
+    const colorIncome = (str: string) => chalkIncome(info.income, str)
 
-    const title = `-- ${chalk.bgCyanBright(name)} (${percent}): ${chalk.underline(sum)}. ${amount} эмит. Доходность: ${chalkIncome(income)} / ${chalkIncome(incomePercent)}\n`
+    const title = `-- ${chalk.bgCyanBright(name)} (${percent}): ${chalk.underline(sum)}. ${amount} эмит. Доходность: ${colorIncome(income)} / ${colorIncome(incomePercent)}\n`
     const desc = getPositionsDesc(info.positions, info.sum, type);
 
     return title + desc + '\n';
   }
 
+  const colorTotalIncome = (str: string) => chalkIncome(expected_yield, str)
+  const colored = {
+    total: {
+      amount: currency.rub(totalAmount),
+      income: colorTotalIncome(`${sign}${currency.rub(totalIncome)}`),
+      incomePercent: colorTotalIncome(`${sign}${Math.abs(+expected_yield.toFixed(2))}%`)
+    }
+  }
+
   console.log(
-    `Текущее состояние портфеля: ${currency.rub(totalAmount)} (${sign}${currency.rub(totalIncome)} / ${sign}${Math.abs(+expected_yield.toFixed(2))}%)\n`
+    `Текущее состояние портфеля: ${colored.total.amount} (${colored.total.income} / ${colored.total.incomePercent})\n`
     + `== Акции ${percentToTotal.shares}% (${currency.rub(total.shares)})\n`
     + `== Облигации ${percentToTotal.bonds}% (${currency.rub(total.bonds)})\n`
     + `== Валюта ${percentToTotal.currencies}% (${currency.rub(total.currencies)})\n`
